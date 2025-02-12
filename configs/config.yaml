@@ -1,0 +1,62 @@
+server:
+  port: :3001
+  environment: development
+  readTimeout: 100
+  writeTimeout: 100
+  idealTimeout: 100
+
+service:
+  name: "shipping-service"
+
+postgresql:
+  debugMode: true
+  database: "shipping_service_db"
+  maxOpenConnections: 10
+  maxIdleConnections: 2
+  master:
+    host: "127.0.0.1"
+    port: "5432"
+    username: "tushar"
+    password: "123456"
+  slaves:
+    hosts: "127.0.0.1"
+    port: "5435"
+    username: "tushar"
+    password: "123456"
+
+log: 
+  level: debug
+  format: json
+  request: true
+  response: false
+
+newrelic:
+  enabled: false
+  appName: "Shipping Service Local"
+  licence: ""
+  distributedTracer: false
+
+constants:
+  servicename: "shipping-service"
+
+api:
+  logging:
+    enable: true
+    request: true
+    response: false
+
+aws:
+  region: "eu-central-1"
+  endpoint: ""
+  sqs:
+    account: "348639420040"
+    region: "eu-central-1"
+    shouldLog: false
+    visibilityTimeout: 30 # seconds
+    waitTime: 20 # seconds
+    messageBatchSize: 1
+
+ajex:
+  service_name: 'ajex'
+  host: 'https://apps-sit.aj-ex.com'
+  timeout: 30

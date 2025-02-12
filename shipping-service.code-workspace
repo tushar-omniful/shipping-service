@@ -1,0 +1,56 @@
+{
+    "folders": [
+      {
+        "path": "."
+      }
+    ],
+    "settings": {
+      "sonarlint.connectedMode.project": {
+        "connectionId": "MyCompanySonarQube",
+        "projectKey": "shipping-service"
+      },
+      "makefile.configureOnOpen": false
+    },
+    "launch": {
+      "version": "0.0.1",
+      "configurations": [
+        {
+          "name": "Common Config",
+          "type": "go",
+          "request": "launch",
+          "mode": "auto",
+          "program": "${workspaceFolder}",
+          "env": {
+            "CONFIG_SOURCE": "local",
+            "LOCAL_SQS_ENDPOINT": "http://localhost:4566"
+          }
+        },
+        {
+          "name": "Launch Worker",
+          "args": ["-mode", "worker"],
+          "program": "${workspaceFolder}",
+          "type": "go",
+          "request": "launch",
+        },
+        {
+          "name": "Migration",
+          "args": ["-mode", "migration"],
+          "program": "${workspaceFolder}",
+          "type": "go",
+          "request": "launch",
+        },
+        {
+          "name": "Launch Application",
+          "args": ["-mode", "http"],
+          "program": "${workspaceFolder}",
+          "type": "go",
+          "request": "launch",
+          "env": {
+            "CONFIG_SOURCE": "local",
+            "LOCAL_SQS_ENDPOINT": "http://localhost:4566"
+          }
+        }
+      ]
+    }
+  }
+  
