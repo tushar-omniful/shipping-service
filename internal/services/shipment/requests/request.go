@@ -21,31 +21,35 @@ type CreateForwardShipmentRequest struct {
 
 // CancelShipmentRequest represents the request structure for canceling an order
 type CancelShipmentRequest struct {
-	OrderID            string `json:"order_id" validate:"required"`
-	CancellationReason string `json:"cancellation_reason" validate:"required"`
-	CancelledBy        string `json:"cancelled_by" validate:"required"`
-	Notes              string `json:"notes,omitempty"`
+	OrderID               string                        `json:"order_id" validate:"required"`
+	Order                 *models.Order                 `json:"order,omitempty"`
+	PartnerShippingMethod *models.PartnerShippingMethod `json:"partner_shipping_method,omitempty"`
+	CancellationReason    string                        `json:"cancellation_reason" validate:"required"`
+	CancelledBy           string                        `json:"cancelled_by" validate:"required"`
+	Notes                 string                        `json:"notes,omitempty"`
 }
 
 type TrackShipmentRequest struct {
-	OrderID string `json:"order_id" validate:"required"`
+	OrderID               string                        `json:"order_id" validate:"required"`
+	Order                 *models.Order                 `json:"order,omitempty"`
+	PartnerShippingMethod *models.PartnerShippingMethod `json:"partner_shipping_method,omitempty"`
 }
 
 // OrderData contains the main order information
 type OrderData struct {
-	ShipmentType              string                 `json:"shipment_type,omitempty"`
-	OrderSource               string                 `json:"order_source,omitempty"`
-	OrderAlias                string                 `json:"order_alias,omitempty"`
+	ShipmentType              string                 `json:"shipment_type"`
+	OrderSource               string                 `json:"order_source"`
+	OrderAlias                string                 `json:"order_alias"`
 	OrderPartnerOrderID       string                 `json:"order_partner_order_id" validate:"required"`
 	SellerSalesChannelOrderID string                 `json:"seller_sales_channel_order_id" validate:"required"`
-	ShippingReference         string                 `json:"shipping_reference,omitempty"`
+	ShippingReference         string                 `json:"shipping_reference"`
 	OrderTime                 time.Time              `json:"order_time" validate:"required"`
 	PickupDetailsAttr         PickupDetailsAttrs     `json:"pickup_details_attributes"`
 	DropDetailsAttr           DropDetailsAttrs       `json:"drop_details_attributes"`
 	ShipmentDetailsAttr       ShipmentDetailsAttr    `json:"shipment_details_attributes"`
 	TaxDetails                *models.TaxDetails     `json:"tax_details,omitempty"`
 	Metadata                  *models.OrderMetadata  `json:"metadata,omitempty"`
-	PreShipmentDetails        map[string]interface{} `json:"pre_shipment_details,omitempty"`
+	PreShipmentDetails        map[string]interface{} `json:"pre_shipment_details"`
 }
 
 type PickupDetailsAttrs struct {

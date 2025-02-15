@@ -6,8 +6,11 @@ import (
 )
 
 var CustomCodeToHttpCodeMapping = map[oerror.Code]http.StatusCode{
-	NotFound:        http.StatusBadRequest,
-	RequestNotValid: http.StatusForbidden,
-	BadRequest:      http.StatusBadRequest,
-	RequestInvalid:  http.StatusBadRequest,
+	NotFound:                     http.StatusBadRequest,
+	RequestNotValid:              http.StatusForbidden,
+	BadRequest:                   http.StatusBadRequest,
+	RequestInvalid:               http.StatusBadRequest,
+	CreateShipmentError:          http.StatusBadRequest,
+	ExternalApiCallError:         http.StatusBadRequest,
+	ShippingServiceInternalError: http.StatusInternalServerError,
 }

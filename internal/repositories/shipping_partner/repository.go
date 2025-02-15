@@ -46,8 +46,8 @@ func (r *Repository) GetShippingPartner(
 	ctx context.Context,
 	condition map[string]any,
 	scopes ...func(db *gorm.DB) *gorm.DB,
-) (shippingPartner *models.ShippingPartner, cusErr commonError.CustomError) {
-	var shippingPartners []*models.ShippingPartner
+) (shippingPartner models.ShippingPartner, cusErr commonError.CustomError) {
+	var shippingPartners []models.ShippingPartner
 	logTag := fmt.Sprintf("RequestID: %s Function: GetShippingPartner", env.GetRequestID(ctx))
 	if resultErr := r.db.GetMasterDB(ctx).Where(condition).Scopes(scopes...).Find(&shippingPartners).Error; resultErr != nil {
 		cusErr = commonError.NewCustomError(customError.SqlFetchError, fmt.Sprintf("%s unable to read", logTag))
@@ -68,7 +68,7 @@ func (r *Repository) GetShippingPartnerByTenantID(
 	ctx context.Context,
 	tenantID string,
 	scopes ...func(db *gorm.DB) *gorm.DB,
-) (shippingPartner *models.ShippingPartner, cusErr commonError.CustomError) {
+) (shippingPartner models.ShippingPartner, cusErr commonError.CustomError) {
 	conditions := map[string]any{
 		"tenant_id": tenantID,
 	}
@@ -78,7 +78,7 @@ func (r *Repository) GetShippingPartnerByTenantID(
 		return
 	}
 
-	if shippingPartner == nil {
+	if cusErr.Exists() {
 		cusErr = commonError.NewCustomError(customError.NotFound, "ShippingPartner not found")
 		return
 	}
@@ -90,7 +90,7 @@ func (r *Repository) GetShippingPartnerByTag(
 	ctx context.Context,
 	tag string,
 	scopes ...func(db *gorm.DB) *gorm.DB,
-) (shippingPartner *models.ShippingPartner, cusErr commonError.CustomError) {
+) (shippingPartner models.ShippingPartner, cusErr commonError.CustomError) {
 	conditions := map[string]any{
 		"tag": tag,
 	}
@@ -100,7 +100,7 @@ func (r *Repository) GetShippingPartnerByTag(
 		return
 	}
 
-	if shippingPartner == nil {
+	if cusErr.Exists() {
 		cusErr = commonError.NewCustomError(customError.NotFound, fmt.Sprintf("ShippingPartner not found for tag %s", tag))
 		return
 	}

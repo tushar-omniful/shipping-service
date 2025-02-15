@@ -9,15 +9,24 @@ import (
 )
 
 const (
-	BadRequest             oerror.Code = "BAD_REQUEST"
-	NotFound               oerror.Code = "NOT_FOUND"
-	RequestNotValid        oerror.Code = "REQUEST_NOT_VALID"
-	RequestInvalid         oerror.Code = "REQUEST_INVALID"
-	FailedToCreateShipment oerror.Code = "FAILED_TO_CREATE_SHIPMENT"
-	SqlCreateError         oerror.Code = "SQL_CREATE_ERROR"
-	SqlUpdateError         oerror.Code = "SQL_UPDATE_ERROR"
-	SqlFetchError          oerror.Code = "SQL_FETCH_ERROR"
-	SqlDeleteError         oerror.Code = "SQL_DELETE_ERROR"
+	BadRequest      oerror.Code = "BAD_REQUEST"
+	NotFound        oerror.Code = "NOT_FOUND"
+	RequestNotValid oerror.Code = "REQUEST_NOT_VALID"
+	RequestInvalid  oerror.Code = "REQUEST_INVALID"
+	SqlCreateError  oerror.Code = "SQL_CREATE_ERROR"
+	SqlUpdateError  oerror.Code = "SQL_UPDATE_ERROR"
+	SqlFetchError   oerror.Code = "SQL_FETCH_ERROR"
+	SqlDeleteError  oerror.Code = "SQL_DELETE_ERROR"
+	UnmarshalError  oerror.Code = "UNMARSHAL"
+)
+
+// shipment errors
+const (
+	FailedToCreateShipment       oerror.Code = "FAILED_TO_CREATE_SHIPMENT"
+	ShippingServiceInternalError oerror.Code = "SHIPPING_SERVICE_INTERNAL_ERROR"
+	ExternalApiCallError         oerror.Code = "EXTERNAL_API_CALL_ERROR"
+	CreateShipmentError          oerror.Code = "CREATE_SHIPMENT_ERROR"
+	OrderReferenceExistError     oerror.Code = "ORDER_REFERENCE_EXIST"
 )
 
 func NewErrorResponse(ctx *gin.Context, cusErr oerror.CustomError) {

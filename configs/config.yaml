@@ -56,7 +56,17 @@ aws:
     waitTime: 20 # seconds
     messageBatchSize: 1
 
+redis:
+  clusterMode: false
+  hosts: "127.0.0.1:7005"
+  db: 1
+
 ajex:
   service_name: 'ajex'
   host: 'https://apps-sit.aj-ex.com'
   timeout: 30
+
+tamex:
+  SERVICE_NAME: 'Tamex'
+  HOST: 'https://test.til.sa'
+  TIMEOUT: 60

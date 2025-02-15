@@ -12,5 +12,5 @@ type OrderPartnerController interface{}
 type OrderPartnerService interface{}
 
 type OrderPartnerRepository interface {
-	GetOrderPartnerByTenantID(ctx context.Context, tenantID string) (*models.OrderPartner, oerror.CustomError)
+	GetOrderPartnerByTenantID(ctx context.Context, tenantID string) (models.OrderPartner, oerror.CustomError)
 }

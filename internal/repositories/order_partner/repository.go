@@ -49,8 +49,8 @@ func (r *Repository) getOrderPartner(
 	ctx context.Context,
 	condition map[string]any,
 	scopes ...func(db *gorm.DB) *gorm.DB,
-) (orderPartner *models.OrderPartner, cusErr commonError.CustomError) {
-	var orderPartners []*models.OrderPartner
+) (orderPartner models.OrderPartner, cusErr commonError.CustomError) {
+	var orderPartners []models.OrderPartner
 	logTag := fmt.Sprintf("RequestID: %s Function: GetOrderPartner", env.GetRequestID(ctx))
 	if resultErr := r.db.GetMasterDB(ctx).Where(condition).Scopes(scopes...).Find(&orderPartners).Error; resultErr != nil {
 		cusErr = commonError.NewCustomError(customError.SqlFetchError, fmt.Sprintf("%s unable to read", logTag))
@@ -70,7 +70,7 @@ func (r *Repository) getOrderPartner(
 func (r *Repository) GetOrderPartnerByTenantID(
 	ctx context.Context,
 	tenantID string,
-) (orderPartner *models.OrderPartner, cusErr commonError.CustomError) {
+) (orderPartner models.OrderPartner, cusErr commonError.CustomError) {
 	conditions := map[string]any{
 		"tenant_id": tenantID,
 	}
@@ -80,10 +80,18 @@ func (r *Repository) GetOrderPartnerByTenantID(
 		return
 	}
 
-	if orderPartner == nil {
-		cusErr = commonError.NewCustomError(customError.NotFound, "OrderPartner not found")
-		return
-	}
+	//if orderPartner == nil {
+	//	cusErr = commonError.NewCustomError(customError.NotFound, "OrderPartner not found")
+	//	return
+	//}
 
 	return
 }
+
+//func(T) string
+//
+//NewCacheOrder()[T] {
+//	keyFunc: func(T) ctx {
+//		return "asas"
+//}
+//}

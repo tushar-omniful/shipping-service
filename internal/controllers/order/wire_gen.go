@@ -9,6 +9,7 @@ package order_controller
 import (
 	"context"
 	"github.com/omniful/go_commons/db/sql/postgres"
+	"github.com/omniful/go_commons/redis"
 	"github.com/omniful/shipping-service/internal/repositories/city_mapping"
 	"github.com/omniful/shipping-service/internal/repositories/hub_mapping"
 	"github.com/omniful/shipping-service/internal/repositories/order"
@@ -18,11 +19,12 @@ import (
 	"github.com/omniful/shipping-service/internal/repositories/tenant_city_mapping"
 	"github.com/omniful/shipping-service/internal/services/orders"
 	"github.com/omniful/shipping-service/internal/services/shipment"
+	"github.com/omniful/shipping-service/pkg/lock"
 )
 
 // Injectors from wire.go:
 
-func Wire(ctx context.Context, db *postgres.DbCluster, nameSpace string) (*Controller, error) {
+func Wire(ctx context.Context, db *postgres.DbCluster, redisClient *redis.Client) (*Controller, error) {
 	repository := order_repo.NewRepository(db)
 	order_partner_repoRepository := order_partner_repo.NewRepository(db)
 	partner_shipping_method_repoRepository := partner_shipping_method_repo.NewRepository(db)
@@ -30,8 +32,9 @@ func Wire(ctx context.Context, db *postgres.DbCluster, nameSpace string) (*Contr
 	shipping_partner_repoRepository := shipping_partner_repo.NewRepository(db)
 	tenant_city_mapping_repoRepository := tenant_city_mapping_repo.NewRepository(db)
 	hub_mapping_repoRepository := hub_mapping_repo.NewRepository(db)
-	service := shipment.NewService(repository, order_partner_repoRepository, partner_shipping_method_repoRepository, city_mapping_repoRepository, shipping_partner_repoRepository, tenant_city_mapping_repoRepository, hub_mapping_repoRepository)
-	orderService := order_service.NewService(repository, order_partner_repoRepository, partner_shipping_method_repoRepository, city_mapping_repoRepository, shipping_partner_repoRepository, tenant_city_mapping_repoRepository, hub_mapping_repoRepository, service)
+	redisLock := lock.NewRedisLock(redisClient)
+	service := shipment.NewService(repository, order_partner_repoRepository, partner_shipping_method_repoRepository, shipping_partner_repoRepository, redisLock)
+	orderService := order_service.NewService(repository, order_partner_repoRepository, partner_shipping_method_repoRepository, city_mapping_repoRepository, shipping_partner_repoRepository, tenant_city_mapping_repoRepository, hub_mapping_repoRepository, service, redisLock)
 	controller := NewController(orderService)
 	return controller, nil
 }

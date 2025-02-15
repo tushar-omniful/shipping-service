@@ -5,11 +5,6 @@
       }
     ],
     "settings": {
-      "sonarlint.connectedMode.project": {
-        "connectionId": "MyCompanySonarQube",
-        "projectKey": "shipping-service"
-      },
-      "makefile.configureOnOpen": false
     },
     "launch": {
       "version": "0.0.1",

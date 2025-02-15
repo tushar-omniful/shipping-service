@@ -20,6 +20,7 @@ type PartnerShippingMethodService interface {
 }
 
 type PartnerShippingMethodRepository interface {
-	GetPartnerShippingMethodByID(ctx context.Context, id string, orderPartnerID string) (*models.PartnerShippingMethod, oerror.CustomError)
-	UpdatePartnerShippingMethod(ctx context.Context, condition map[string]interface{}, psm *models.PartnerShippingMethod) oerror.CustomError
+	GetPartnerShippingMethodByID(ctx context.Context, id string) (models.PartnerShippingMethod, oerror.CustomError)
+	GetIntegratedPartnerShippingMethod(ctx context.Context, id string, orderPartnerID string, sellerID string) (models.PartnerShippingMethod, oerror.CustomError)
+	UpdatePartnerShippingMethod(ctx context.Context, condition map[string]interface{}, psm models.PartnerShippingMethod) oerror.CustomError
 }

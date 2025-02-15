@@ -20,8 +20,5 @@ type ShippingPartnerService interface {
 }
 
 type ShippingPartnerRepository interface {
-	GetShippingPartnerByTag(ctx context.Context, tag string, scopes ...func(db *gorm.DB) *gorm.DB) (*models.ShippingPartner, oerror.CustomError)
-	//GetShippingPartner(ctx context.Context, condition map[string]interface{}, scopes ...func(db *gorm.DB) *gorm.DB) (*models.ShippingPartner, oerror.CustomError)
-	//CreateShippingPartner(ctx context.Context, partner *models.ShippingPartner) oerror.CustomError
-	//UpdateShippingPartner(ctx context.Context, condition map[string]interface{}, partner *models.ShippingPartner) oerror.CustomError
+	GetShippingPartnerByTag(ctx context.Context, tag string, scopes ...func(db *gorm.DB) *gorm.DB) (model models.ShippingPartner, error oerror.CustomError)
 }

@@ -70,16 +70,16 @@ func (m *Metadata) ToModelMetadata() *models.OrderMetadata {
 		return nil
 	}
 	return &models.OrderMetadata{
-		AwbLabel:       m.AwbLabel,
-		AwbNumber:      m.AwbNumber,
-		DeliveryType:   m.DeliveryType,
-		TaxNumber:      m.TaxNumber,
-		EnableWhatsapp: m.EnableWhatsapp,
-		IsFragile:      m.IsFragile,
-		IsDangerous:    m.IsDangerous,
-		Label:          m.Label,
-		ReturnInfo:     m.ReturnInfo.ToModelReturnInfo(),
-		ResellerInfo:   m.ResellerInfo.ToModelResellerInfo(),
+		OmnifulAwbLabel: m.AwbLabel,
+		AwbNumber:       m.AwbNumber,
+		DeliveryType:    m.DeliveryType,
+		TaxNumber:       m.TaxNumber,
+		EnableWhatsapp:  m.EnableWhatsapp,
+		IsFragile:       m.IsFragile,
+		IsDangerous:     m.IsDangerous,
+		Label:           m.Label,
+		ReturnInfo:      m.ReturnInfo.ToModelReturnInfo(),
+		ResellerInfo:    m.ResellerInfo.ToModelResellerInfo(),
 	}
 }
 
@@ -125,8 +125,8 @@ func (r *OrderResellerInfo) ToModelResellerInfo() *models.OrderResellerInfo {
 
 type ShipmentDetails struct {
 	CourierPartnerID     int             `json:"courier_partner_id,omitempty"`
-	TotalSKUCount        int             `json:"total_sku_count" validate:"required"`
-	TotalItemCount       int             `json:"total_item_count" validate:"required"`
+	TotalSKUCount        int             `json:"total_sku_count" `
+	TotalItemCount       int             `json:"total_item_count"`
 	CourierPartner       *CourierPartner `json:"courier_partner,omitempty"`
 	Slot                 *DeliverySlot   `json:"slot,omitempty"`
 	Tags                 []Tag           `json:"tags,omitempty"`
@@ -141,12 +141,12 @@ type ShipmentDetails struct {
 	Count                int             `json:"count,omitempty"`
 	Currency             string          `json:"currency,omitempty"`
 	PaymentType          string          `json:"payment_type,omitempty"`
-	InvoiceValue         float64         `json:"invoice_value" validate:"required"`
+	InvoiceValue         float64         `json:"invoice_value"`
 	OrderValue           float64         `json:"order_value,omitempty"`
 	OrderNote            string          `json:"order_note,omitempty"`
 	OrderCreatedAt       string          `json:"order_created_at,omitempty"`
-	TotalPaid            float64         `json:"total_paid" validate:"required"`
-	TotalDue             float64         `json:"total_due" validate:"required"`
+	TotalPaid            float64         `json:"total_paid"`
+	TotalDue             float64         `json:"total_due"`
 	TotalDuePriceSet     *PriceSet       `json:"total_due_price_set,omitempty"`
 	TotalPaidPriceSet    *PriceSet       `json:"total_paid_price_set,omitempty"`
 	InvoiceValuePriceSet *PriceSet       `json:"invoice_value_price_set,omitempty"`
@@ -159,7 +159,7 @@ type ShipmentDetails struct {
 	Description          string          `json:"description,omitempty"`
 	ServiceType          string          `json:"service_type,omitempty"`
 	ShippingMethod       string          `json:"shipping_method,omitempty"`
-	Items                []Item          `json:"items" validate:"required"`
+	Items                []Item          `json:"items"`
 	PackageDetails       []PackageDetail `json:"package_details,omitempty"`
 }
 
@@ -225,20 +225,20 @@ type Currency struct {
 type ExchangeRate struct {
 	OrderCurrency string  `json:"order_currency,omitempty"`
 	StoreCurrency string  `json:"store_currency,omitempty"`
-	Rate          float64 `json:"rate" validate:"required"`
+	Rate          float64 `json:"rate"`
 }
 
 type Item struct {
 	ProductURL      string          `json:"product_url,omitempty"`
-	Price           int             `json:"price" validate:"required"`
+	Price           int             `json:"price"`
 	Description     string          `json:"description,omitempty"`
-	Quantity        int             `json:"quantity" validate:"required"`
+	Quantity        int             `json:"quantity"`
 	PackedQuantity  int             `json:"packed_quantity,omitempty"`
 	SKU             string          `json:"sku,omitempty"`
 	SKUName         string          `json:"sku_name" validate:"required"`
 	CountryOfOrigin string          `json:"country_of_origin,omitempty"`
 	Weight          *ItemWeight     `json:"weight,omitempty"`
-	Additional      *ItemAdditional `json:"additional" validate:"required"`
+	Additional      *ItemAdditional `json:"additional"`
 }
 
 func (i *Item) ToModelItem() models.Item {

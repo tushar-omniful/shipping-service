@@ -6,8 +6,11 @@ import (
 	opostgres "github.com/omniful/go_commons/db/sql/postgres"
 	"github.com/omniful/go_commons/log"
 	"github.com/omniful/go_commons/newrelic"
+	oredis "github.com/omniful/go_commons/redis"
+	"github.com/omniful/shipping-service/internal/services/shipping_commons"
 	"github.com/omniful/shipping-service/pkg/db/postgres"
 	"github.com/omniful/shipping-service/pkg/notifications/slack"
+	"github.com/omniful/shipping-service/pkg/redis"
 	validator "github.com/omniful/shipping-service/pkg/validate"
 	"time"
 )
@@ -16,7 +19,9 @@ func Initialize(ctx context.Context) {
 	initializeLog(ctx)
 	initializeDB(ctx)
 	initializeNewrelic(ctx)
+	initializeRedis(ctx)
 	validator.Set()
+	initializeCommonShippingService(ctx)
 	slack.Set(ctx)
 }
 
@@ -87,6 +92,19 @@ func initializeDB(ctx context.Context) {
 	postgres.SetCluster(db)
 }
 
+// Initialize Redis
+func initializeRedis(ctx context.Context) {
+	r := oredis.NewClient(&oredis.Config{
+		ClusterMode: config.GetBool(ctx, "redis.clusterMode"),
+		Hosts:       config.GetStringSlice(ctx, "redis.hosts"),
+		DB:          config.GetUint(ctx, "redis.db"),
+	})
+
+	redis.SetClient(r)
+
+	log.Infof("Initialized Redis Client")
+}
+
 // Initialize Newrelic
 func initializeNewrelic(ctx context.Context) {
 	newrelic.Initialize(&newrelic.Options{
@@ -96,4 +114,8 @@ func initializeNewrelic(ctx context.Context) {
 		DistributedTracer: config.GetBool(ctx, "newrelic.distributedTracer"),
 	})
 	log.Debugf("Initialized New Relic")
+}
+
+func initializeCommonShippingService(ctx context.Context) {
+	shipping_commons.InitializeCommonShippingService(ctx)
 }

@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// OrderStatus represents the status of an order
 type OrderStatus string
 
 const (
@@ -25,6 +26,7 @@ const (
 	ReturnToOrigin     OrderStatus = "return_to_origin"
 )
 
+// OrderSource represents the source of an order
 type OrderSource string
 
 const (
@@ -32,12 +34,13 @@ const (
 	SourceOMS                OrderSource = "oms"
 )
 
+// Order represents the order model
 type Order struct {
 	ID                      uint64           `json:"id"`
 	OrderPartnerOrderID     string           `json:"order_partner_order_id" gorm:"type:citext;not null"`
 	ShippingPartnerOrderID  string           `json:"shipping_partner_order_id" gorm:"type:citext"`
-	OrderPartnerID          int64            `json:"order_partner_id" gorm:"not null"`
-	ShippingPartnerID       int64            `json:"shipping_partner_id" gorm:"not null"`
+	OrderPartnerID          uint64           `json:"order_partner_id" gorm:"not null"`
+	ShippingPartnerID       uint64           `json:"shipping_partner_id" gorm:"not null"`
 	Status                  OrderStatus      `json:"status" gorm:"type:citext;not null;default:'new_order'"`
 	ShipmentType            string           `json:"shipment_type" gorm:"type:citext;not null"`
 	ShippingPartnerStatus   string           `json:"shipping_partner_status" gorm:"type:citext"`
@@ -49,7 +52,7 @@ type Order struct {
 	ShippingLabel           string           `json:"shipping_label" gorm:"type:citext"`
 	AWBNumber               string           `json:"awb_number" gorm:"type:citext"`
 	SellerID                string           `json:"seller_id" gorm:"type:citext"`
-	PartnerShippingMethodID int64            `json:"partner_shipping_method_id"`
+	PartnerShippingMethodID uint64           `json:"partner_shipping_method_id"`
 	Source                  OrderSource      `json:"source" gorm:"type:citext"`
 	CreatedAt               time.Time        `json:"created_at"`
 	UpdatedAt               time.Time        `json:"updated_at"`
@@ -58,125 +61,153 @@ type Order struct {
 	OrderPartner          *OrderPartner          `json:"-" gorm:"foreignKey:OrderPartnerID"`
 	ShippingPartner       *ShippingPartner       `json:"-" gorm:"foreignKey:ShippingPartnerID"`
 	PartnerShippingMethod *PartnerShippingMethod `json:"-" gorm:"foreignKey:PartnerShippingMethodID"`
-	ActionLogs            []ActionLog            `json:"-" gorm:"foreignKey:ActionableID;polymorphic:Actionable"`
-	//StatusHistory         *StatusHistory         `json:"-" gorm:"foreignKey:EntityID;polymorphic:Entity"`
-}
-
-func (Order) TableName() string {
-	return "orders"
 }
 
 // Helper methods
 func (o *Order) IsInternational() bool {
 	if o.IsReverseOrder() {
-		// return o.PickupDetails.CountryID != o.DropDetails.OmnifulCountryID
+		return o.PickupDetails.CountryID != o.DropDetails.OmnifulCountryID
 	}
-	// return o.PickupDetails.CountryID != o.DropDetails.OmnifulCountryID
 	return false
 }
 
 func (o *Order) IsReverseOrder() bool {
-
 	return o.ShipmentDetails.IsReturnOrder
 }
 
+func (o *Order) IsDispatched() bool {
+	return !o.IsBeforeDispatchStatus()
+}
+
+func (o *Order) IsBeforeDispatchStatus() bool {
+	return o.Status == NewOrder || o.Status == Created || o.Status == ToBePicked
+}
+
+func (o *Order) IsTerminatingStatus() bool {
+	return o.Status == Cancelled || o.Status == Delivered || o.Status == ReturnToOrigin
+}
+
+// GetNumberOfRetries returns the number of retries from metadata
+func (o *Order) GetNumberOfRetries() int {
+	if o.Metadata == nil {
+		return 0
+	}
+	return o.Metadata.NumberOfRetries
+}
+
+// GetTrackingURL returns the tracking URL from metadata
+func (o *Order) GetTrackingURL() string {
+	if o.Metadata == nil {
+		return ""
+	}
+	return o.Metadata.TrackingURL
+}
+
+// GetAwbLabel returns the AWB label from metadata
+func (o *Order) GetAwbLabel() string {
+	if o.Metadata == nil {
+		return ""
+	}
+	return o.Metadata.OmnifulAwbLabel
+}
+
 type PickupDetails struct {
-	HubID              string          `json:"hub_id,omitempty"`
-	HubCode            string          `json:"hub_code,omitempty"`
-	Name               string          `json:"name,omitempty"`
-	Phone              string          `json:"phone,omitempty"`
-	CountryCallingCode string          `json:"country_calling_code,omitempty"`
-	Email              string          `json:"email,omitempty"`
-	Timezone           string          `json:"timezone,omitempty"`
-	CountryID          string          `json:"country_id,omitempty"`
-	StateID            string          `json:"state_id,omitempty"`
-	CityID             string          `json:"city_id,omitempty"`
-	City               string          `json:"city,omitempty"`
-	District           string          `json:"district,omitempty"`
-	State              string          `json:"state,omitempty"`
-	Country            string          `json:"country,omitempty"`
-	Pincode            string          `json:"pincode" validate:"required"`
-	CountryCode        string          `json:"country_code,omitempty"`
-	Latitude           float64         `json:"latitude,omitempty"`
-	Longitude          float64         `json:"longitude,omitempty"`
-	Address            string          `json:"address,omitempty"`
-	StateCode          string          `json:"state_code,omitempty"`
-	SellerDetails      *SellerDetails  `json:"seller_details,omitempty"`
-	VillageDetails     *VillageDetails `json:"village_details,omitempty"`
+	HubID              string          `json:"hub_id"`
+	HubCode            string          `json:"hub_code"`
+	Name               string          `json:"name"`
+	Phone              string          `json:"phone"`
+	CountryCallingCode string          `json:"country_calling_code"`
+	Email              string          `json:"email"`
+	Timezone           string          `json:"timezone"`
+	CountryID          string          `json:"country_id"`
+	StateID            string          `json:"state_id"`
+	CityID             string          `json:"city_id"`
+	City               string          `json:"city"`
+	District           string          `json:"district"`
+	State              string          `json:"state"`
+	Country            string          `json:"country"`
+	Pincode            string          `json:"pincode"`
+	CountryCode        string          `json:"country_code"`
+	Latitude           float64         `json:"latitude"`
+	Longitude          float64         `json:"longitude"`
+	Address            string          `json:"address"`
+	StateCode          string          `json:"state_code"`
+	SellerDetails      *SellerDetails  `json:"seller_details"`
+	VillageDetails     *VillageDetails `json:"village_details"`
 }
 
 // DropDetails contains information about the drop (delivery) location.
 type DropDetails struct {
-	Address             string          `json:"address,omitempty"`
-	Phone               string          `json:"phone,omitempty"`
-	MobileNumber        *MobileNumber   `json:"mobile_number,omitempty"`
-	Country             string          `json:"country,omitempty"`
-	CountryCode         string          `json:"country_code" validate:"required"`
-	CountryCurrencyCode string          `json:"country_currency_code,omitempty"`
-	State               string          `json:"state,omitempty"`
-	City                string          `json:"city,omitempty"`
-	CityCode            string          `json:"city_code,omitempty"`
-	PostalCode          string          `json:"postal_code,omitempty"`
-	Pincode             string          `json:"pincode,omitempty"`
-	Name                string          `json:"name,omitempty"`
-	HubCode             string          `json:"hub_code,omitempty"`
-	HubID               string          `json:"hub_id,omitempty"`
-	Email               string          `json:"email,omitempty"`
-	Latitude            float64         `json:"latitude,omitempty"`
-	Longitude           float64         `json:"longitude,omitempty"`
-	StateCode           string          `json:"state_code,omitempty"`
-	Area                string          `json:"area,omitempty"`
-	District            string          `json:"district,omitempty"`
-	OmnifulCountry      string          `json:"omniful_country,omitempty"`
-	OmnifulCountryID    string          `json:"omniful_country_id,omitempty"`
-	OmnifulState        string          `json:"omniful_state,omitempty"`
-	OmnifulStateID      string          `json:"omniful_state_id,omitempty"`
-	OmnifulCity         string          `json:"omniful_city,omitempty"`
-	OmnifulCityID       string          `json:"omniful_city_id,omitempty"`
-	VillageDetails      *VillageDetails `json:"village_details,omitempty"`
-	SalesChannelCity    string          `json:"sales_channel_city,omitempty"`
+	Address             string          `json:"address"`
+	Phone               string          `json:"phone"`
+	MobileNumber        *MobileNumber   `json:"mobile_number"`
+	Country             string          `json:"country"`
+	CountryCode         string          `json:"country_code"`
+	CountryCurrencyCode string          `json:"country_currency_code"`
+	State               string          `json:"state"`
+	City                string          `json:"city"`
+	CityCode            string          `json:"city_code"`
+	PostalCode          string          `json:"postal_code"`
+	Pincode             string          `json:"pincode"`
+	Name                string          `json:"name"`
+	HubCode             string          `json:"hub_code"`
+	HubID               string          `json:"hub_id"`
+	Email               string          `json:"email"`
+	Latitude            float64         `json:"latitude"`
+	Longitude           float64         `json:"longitude"`
+	StateCode           string          `json:"state_code"`
+	Area                string          `json:"area"`
+	District            string          `json:"district"`
+	OmnifulCountry      string          `json:"omniful_country"`
+	OmnifulCountryID    string          `json:"omniful_country_id"`
+	OmnifulState        string          `json:"omniful_state"`
+	OmnifulStateID      string          `json:"omniful_state_id"`
+	OmnifulCity         string          `json:"omniful_city"`
+	OmnifulCityID       string          `json:"omniful_city_id"`
+	VillageDetails      *VillageDetails `json:"village_details"`
+	SalesChannelCity    string          `json:"sales_channel_city"`
 }
 
 // ShipmentDetails contains detailed information about the shipment.
 type ShipmentDetails struct {
 	CourierPartnerID     int                  `json:"courier_partner_id,omitempty"`
-	TotalSKUCount        int                  `json:"total_sku_count" validate:"required"`
-	TotalItemCount       int                  `json:"total_item_count" validate:"required"`
+	TotalSKUCount        int                  `json:"total_sku_count"`
+	TotalItemCount       int                  `json:"total_item_count"`
 	CourierPartner       *OrderCourierPartner `json:"courier_partner,omitempty"`
 	Slot                 *DeliverySlot        `json:"slot,omitempty"`
 	Tags                 []Tag                `json:"tags,omitempty"`
 	OrderType            string               `json:"order_type,omitempty"`
 	Remarks              string               `json:"remarks,omitempty"`
 	NumberOfBoxes        int                  `json:"number_of_boxes" validate:"required,gt=0"`
-	Height               int                  `json:"height,omitempty"`
-	Length               int                  `json:"length,omitempty"`
-	Breadth              int                  `json:"breadth,omitempty"`
-	Weight               float64              `json:"weight" validate:"required"`
-	CodValue             float64              `json:"cod_value,omitempty"`
-	Count                int                  `json:"count,omitempty"`
-	Currency             string               `json:"currency,omitempty"`
-	PaymentType          string               `json:"payment_type,omitempty"`
-	InvoiceValue         float64              `json:"invoice_value" validate:"required"`
-	OrderValue           float64              `json:"order_value,omitempty"`
-	OrderNote            string               `json:"order_note,omitempty"`
-	OrderCreatedAt       string               `json:"order_created_at,omitempty"`
-	TotalPaid            float64              `json:"total_paid" validate:"required"`
-	TotalDue             float64              `json:"total_due" validate:"required"`
+	Height               int                  `json:"height"`
+	Length               int                  `json:"length"`
+	Breadth              int                  `json:"breadth"`
+	Weight               float64              `json:"weight"`
+	CodValue             float64              `json:"cod_value"`
+	Count                int                  `json:"count"`
+	Currency             string               `json:"currency"`
+	PaymentType          string               `json:"payment_type"`
+	InvoiceValue         float64              `json:"invoice_value"`
+	OrderValue           float64              `json:"order_value"`
+	OrderNote            string               `json:"order_note"`
+	OrderCreatedAt       string               `json:"order_created_at"`
+	TotalPaid            float64              `json:"total_paid"`
+	TotalDue             float64              `json:"total_due"`
 	IsReturnOrder        bool                 `json:"is_return_order"`
-	TotalDuePriceSet     *PriceSet            `json:"total_due_price_set,omitempty"`
-	TotalPaidPriceSet    *PriceSet            `json:"total_paid_price_set,omitempty"`
-	InvoiceValuePriceSet *PriceSet            `json:"invoice_value_price_set,omitempty"`
-	OrderValuePriceSet   *PriceSet            `json:"order_value_price_set,omitempty"`
-	ExchangeRate         *ExchangeRate        `json:"exchange_rate,omitempty"`
-	InvoiceNumber        string               `json:"invoice_number,omitempty"`
-	InvoiceDate          string               `json:"invoice_date,omitempty"`
-	PackedQuantity       int                  `json:"packed_quantity,omitempty"`
-	ContainsFrozenItems  bool                 `json:"contains_frozen_items,omitempty"`
-	Description          string               `json:"description,omitempty"`
-	ServiceType          string               `json:"service_type,omitempty"`
-	ShippingMethod       string               `json:"shipping_method,omitempty"`
-	Items                []Item               `json:"items" validate:"required"`
-	PackageDetails       []PackageDetail      `json:"package_details,omitempty"`
+	TotalDuePriceSet     *PriceSet            `json:"total_due_price_set"`
+	TotalPaidPriceSet    *PriceSet            `json:"total_paid_price_set"`
+	InvoiceValuePriceSet *PriceSet            `json:"invoice_value_price_set"`
+	OrderValuePriceSet   *PriceSet            `json:"order_value_price_set"`
+	ExchangeRate         *ExchangeRate        `json:"exchange_rate"`
+	InvoiceNumber        string               `json:"invoice_number"`
+	InvoiceDate          string               `json:"invoice_date"`
+	PackedQuantity       int                  `json:"packed_quantity"`
+	ContainsFrozenItems  bool                 `json:"contains_frozen_items"`
+	Description          string               `json:"description"`
+	ServiceType          string               `json:"service_type"`
+	ShippingMethod       string               `json:"shipping_method"`
+	Items                []Item               `json:"items"`
+	PackageDetails       []PackageDetail      `json:"package_details"`
 }
 
 type MobileNumber struct {
@@ -198,8 +229,8 @@ type VillageDetails struct {
 // SellerDetails contains seller information
 type SellerDetails struct {
 	ID                 string         `json:"id,omitempty"`
-	Name               string         `json:"name" validate:"required"`
-	Phone              string         `json:"phone" validate:"required"`
+	Name               string         `json:"name"`
+	Phone              string         `json:"phone"`
 	CountryCode        string         `json:"country_code,omitempty"`
 	CountryCallingCode string         `json:"country_calling_code,omitempty"`
 	Address            *SellerAddress `json:"address,omitempty"`
@@ -280,7 +311,7 @@ type Item struct {
 	Quantity        int             `json:"quantity"`
 	PackedQuantity  int             `json:"packed_quantity,omitempty"`
 	SKU             string          `json:"sku,omitempty"`
-	SKUName         string          `json:"sku_name" validate:"required"`
+	SKUName         string          `json:"sku_name"`
 	CountryOfOrigin string          `json:"country_of_origin,omitempty"`
 	Weight          *ItemWeight     `json:"weight,omitempty"`
 	Additional      *ItemAdditional `json:"additional,omitempty"`
@@ -343,16 +374,19 @@ type OrderCourierPartner struct {
 }
 
 type OrderMetadata struct {
-	AwbLabel       string             `json:"awb_label,omitempty"`
-	AwbNumber      string             `json:"awb_number,omitempty"`
-	DeliveryType   string             `json:"delivery_type,omitempty"`
-	TaxNumber      string             `json:"tax_number,omitempty"`
-	EnableWhatsapp bool               `json:"enable_whatsapp,omitempty"`
-	IsFragile      bool               `json:"is_fragile,omitempty"`
-	IsDangerous    bool               `json:"is_dangerous,omitempty"`
-	Label          bool               `json:"label,omitempty"`
-	ReturnInfo     *OrderReturnInfo   `json:"return_info,omitempty"`
-	ResellerInfo   *OrderResellerInfo `json:"reseller_info,omitempty"`
+	OmnifulAwbLabel  string             `json:"omniful_awb_label,omitempty"`
+	ShippingAwbLabel string             `json:"shipping_awb_label,omitempty"`
+	TrackingURL      string             `json:"tracking_url,omitempty"`
+	AwbNumber        string             `json:"awb_number,omitempty"`
+	DeliveryType     string             `json:"delivery_type,omitempty"`
+	TaxNumber        string             `json:"tax_number,omitempty"`
+	NumberOfRetries  int                `json:"number_of_retries,omitempty"`
+	EnableWhatsapp   bool               `json:"enable_whatsapp,omitempty"`
+	IsFragile        bool               `json:"is_fragile,omitempty"`
+	IsDangerous      bool               `json:"is_dangerous,omitempty"`
+	Label            bool               `json:"label,omitempty"`
+	ReturnInfo       *OrderReturnInfo   `json:"return_info,omitempty"`
+	ResellerInfo     *OrderResellerInfo `json:"reseller_info,omitempty"`
 }
 
 // ReturnInfo contains return shipping information

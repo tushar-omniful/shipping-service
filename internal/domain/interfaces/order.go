@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"context"
+
 	"github.com/omniful/shipping-service/internal/domain/models"
 
 	"github.com/gin-gonic/gin"
@@ -23,4 +24,9 @@ type OrderRepository interface {
 		ctx context.Context,
 		order *models.Order,
 	) (*models.Order, oerror.CustomError)
+	CheckExistingOrder(
+		ctx context.Context,
+		orderPartnerOrderID string,
+		orderPartnerID uint64,
+	) (bool, oerror.CustomError)
 }

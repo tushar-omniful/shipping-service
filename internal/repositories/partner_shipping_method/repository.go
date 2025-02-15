@@ -2,6 +2,7 @@ package partner_shipping_method_repo
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -37,7 +38,7 @@ func NewRepository(db *postgres.DbCluster) *Repository {
 }
 
 // CreatePartnerShippingMethod creates a new partner shipping method record.
-func (r *Repository) CreatePartnerShippingMethod(ctx context.Context, partnerShippingMethod *models.PartnerShippingMethod) (cusErr commonError.CustomError) {
+func (r *Repository) CreatePartnerShippingMethod(ctx context.Context, partnerShippingMethod models.PartnerShippingMethod) (cusErr commonError.CustomError) {
 	logTag := fmt.Sprintf("RequestID: %s Function: CreatePartnerShippingMethod", env.GetRequestID(ctx))
 	if resultErr := r.db.GetMasterDB(ctx).Create(partnerShippingMethod).Error; resultErr != nil {
 		cusErr = commonError.NewCustomError(customError.SqlCreateError, fmt.Sprintf("%s unable to create", logTag))
@@ -47,7 +48,7 @@ func (r *Repository) CreatePartnerShippingMethod(ctx context.Context, partnerShi
 }
 
 // UpdatePartnerShippingMethod updates an existing partner shipping method record.
-func (r *Repository) UpdatePartnerShippingMethod(ctx context.Context, condition map[string]interface{}, partnerShippingMethod *models.PartnerShippingMethod) (cusErr commonError.CustomError) {
+func (r *Repository) UpdatePartnerShippingMethod(ctx context.Context, condition map[string]interface{}, partnerShippingMethod models.PartnerShippingMethod) (cusErr commonError.CustomError) {
 	logTag := fmt.Sprintf("RequestID: %s Function: UpdatePartnerShippingMethod", env.GetRequestID(ctx))
 	if resultErr := r.db.GetMasterDB(ctx).Model(partnerShippingMethod).Where(condition).Updates(partnerShippingMethod).Error; resultErr != nil {
 		cusErr = commonError.NewCustomError(customError.SqlUpdateError, fmt.Sprintf("%s unable to update", logTag))
@@ -90,7 +91,7 @@ func (r *Repository) GetPartnerShippingMethods(
 	ctx context.Context,
 	condition map[string]any,
 	scopes ...func(db *gorm.DB) *gorm.DB,
-) (partnerShippingMethods []*models.PartnerShippingMethod, cusErr commonError.CustomError) {
+) (partnerShippingMethods []models.PartnerShippingMethod, cusErr commonError.CustomError) {
 	logTag := fmt.Sprintf("RequestID: %s Function: GetPartnerShippingMethods", env.GetRequestID(ctx))
 	if resultErr := r.db.GetMasterDB(ctx).Where(condition).Scopes(scopes...).Find(&partnerShippingMethods).Error; resultErr != nil {
 		cusErr = commonError.NewCustomError(customError.SqlFetchError, fmt.Sprintf("%s unable to read", logTag))
@@ -106,7 +107,7 @@ func (r *Repository) GetPartnerShippingMethod(
 	ctx context.Context,
 	condition map[string]any,
 	scopes ...func(db *gorm.DB) *gorm.DB,
-) (partnerShippingMethod *models.PartnerShippingMethod, cusErr commonError.CustomError) {
+) (partnerShippingMethod models.PartnerShippingMethod, cusErr commonError.CustomError) {
 	partnerShippingMethods, cusErr := r.GetPartnerShippingMethods(ctx, condition, scopes...)
 	if cusErr.Exists() {
 		return
@@ -121,11 +122,10 @@ func (r *Repository) GetPartnerShippingMethod(
 	return
 }
 
-func (r *Repository) GetPartnerShippingMethodByID(ctx context.Context, id string, orderPartnerID string) (partnerShippingMethod *models.PartnerShippingMethod, cusErr commonError.CustomError) {
-	// Include both "id" and "order_partner_id" in the conditions.
+func (r *Repository) GetPartnerShippingMethodByID(ctx context.Context, id string) (partnerShippingMethod models.PartnerShippingMethod, cusErr commonError.CustomError) {
+	// Base conditions
 	conditions := map[string]any{
-		"id":               id,
-		"order_partner_id": orderPartnerID,
+		"id": id,
 	}
 
 	partnerShippingMethod, cusErr = r.GetPartnerShippingMethod(ctx, conditions)
@@ -133,8 +133,23 @@ func (r *Repository) GetPartnerShippingMethodByID(ctx context.Context, id string
 		return
 	}
 
-	if partnerShippingMethod == nil {
-		cusErr = commonError.NewCustomError(customError.NotFound, "PartnerShippingMethod not found")
+	return
+}
+
+func (r *Repository) GetIntegratedPartnerShippingMethod(ctx context.Context, id string, orderPartnerID string, sellerID string) (partnerShippingMethod models.PartnerShippingMethod, cusErr commonError.CustomError) {
+	logTag := fmt.Sprintf("RequestID: %s Function: GetIntegratedPartnerShippingMethod", env.GetRequestID(ctx))
+
+	db2 := r.db.GetMasterDB(ctx)
+
+	// Start with base query
+	query := db2.Where("id = ? AND order_partner_id = ?", id, orderPartnerID).Where("is_all_seller_mapped = true OR ? = ANY(seller_ids)", sellerID)
+
+	if err := query.First(&partnerShippingMethod).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			cusErr = commonError.NewCustomError(customError.NotFound, "Account not found")
+			return
+		}
+		cusErr = commonError.NewCustomError(customError.SqlFetchError, fmt.Sprintf("%s unable to read: %v", logTag, err))
 		return
 	}
 
